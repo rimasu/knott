@@ -10,7 +10,7 @@ pub struct PosSpec {
     label: String,
     id: Pos,
     suffix_range: Option<SuffixRange>,
-    shared: bool,
+    separate: bool,
     ordered: bool,
     hidden: bool,
 }
@@ -44,7 +44,7 @@ impl TryFrom<PosDef> for PosSpec {
             label: def.label.to_owned(),
             id: id.to_owned(),
             suffix_range,
-            shared: def.shared,
+            separate: def.separate,
             ordered: def.ordered,
             hidden: def.hidden,
         })

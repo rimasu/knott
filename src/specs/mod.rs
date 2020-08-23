@@ -47,22 +47,31 @@ impl TryFrom<GameDef> for GameSpec {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::defs::{GameDefBuilder, PosFlags};
+    use crate::defs::{GameDefBuilder, PosFlags, SuffixDef};
     use std::convert::TryInto;
 
     #[test]
     fn can_convert_def_into_spec() {
-        let mut bld = GameDefBuilder::new("whist");
-        bld.add_range_kind("card", 1, 52)
-            .add_kind("leader")
-            .add_kind("to_play")
-            .add_range_kind("suit", 1, 4)
-            .add_pos("deck", PosFlags::HIDDEN | PosFlags::SHARED)
-            .add_pos("discard", PosFlags::HIDDEN | PosFlags::SHARED)
-            .add_pos("hand", PosFlags::HIDDEN)
-            .add_pos("trick", PosFlags::NONE)
-            .add_pos("trump", PosFlags::SHARED);
-        let def = bld.build();
+        let def = GameDefBuilder::new("whist")
+            .min_players(3)
+            .max_players(5)
+            .kind(KindDef::new("card")
+                .suffix_range(1, 52)
+            )
+            .kind(KindDef::new("leader"))
+            .kind(KindDef::new("to_play"))
+            .kind(KindDef::new("suit")
+                .suffix(SuffixDef::new("hearts"))
+                .suffix(SuffixDef::new("clubs"))
+                .suffix(SuffixDef::new("diamonds"))
+                .suffix(SuffixDef::new("spades"))
+            )
+            .pos(PosDef::new("deck").hidden())
+            .pos(PosDef::new("discard").hidden())
+            .pos(PosDef::new("hand").hidden().separate())
+            .pos(PosDef::new("trick").separate())
+            .pos(PosDef::new("trump"))
+            .build();
 
         let spec: GameSpec = def.try_into().unwrap();
     }

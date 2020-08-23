@@ -28,9 +28,33 @@ pub struct SuffixRangeDef {
     pub max: i32,
 }
 
-pub struct SuffixTableRowDef {
-    pub id: i32,
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct SuffixDef {
     pub label: String,
+    pub id: u32,
+}
+
+pub struct SuffixDefBuilder {
+    pub label: String,
+    pub id: Option<u32>,
+}
+
+impl SuffixDef {
+    pub fn new<T: AsRef<str>>(label: T) -> SuffixDefBuilder {
+        SuffixDefBuilder {
+            label: label.as_ref().to_owned(),
+            id: None,
+        }
+    }
+}
+
+impl SuffixDefBuilder {
+    fn build(self, next_id: u32) -> SuffixDef {
+        SuffixDef {
+            label: self.label,
+            id: self.id.unwrap_or(next_id),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -41,6 +65,49 @@ pub struct KindDef {
 
     #[serde(default = "default_suffix_range", skip_serializing_if = "Option::is_none")]
     pub suffix_range: Option<SuffixRangeDef>,
+
+    #[serde(default = "Vec::new", skip_serializing_if = "Vec::is_empty")]
+    pub suffixes: Vec<SuffixDef>,
+}
+
+pub struct KindDefBuilder {
+    label: String,
+    id: Option<u32>,
+    suffix_range: Option<SuffixRangeDef>,
+    suffixes: Vec<SuffixDef>,
+}
+
+impl KindDef {
+    pub fn new<T: AsRef<str>>(label: T) -> KindDefBuilder {
+        KindDefBuilder {
+            label: label.as_ref().to_owned(),
+            id: None,
+            suffix_range: None,
+            suffixes: Vec::new(),
+        }
+    }
+}
+
+impl KindDefBuilder {
+    pub fn suffix_range(mut self, min: i32, max: i32) -> Self {
+        self.suffix_range = Some(SuffixRangeDef { min, max });
+        self
+    }
+
+    pub fn suffix(mut self, bld: SuffixDefBuilder) -> Self {
+        let next_id = (self.suffixes.len() + 1) as u32;
+        self.suffixes.push(bld.build(next_id));
+        self
+    }
+
+    fn build(self, next_id: u32) -> KindDef {
+        KindDef {
+            label: self.label,
+            id: self.id.unwrap_or(next_id),
+            suffix_range: self.suffix_range,
+            suffixes: self.suffixes,
+        }
+    }
 }
 
 impl Indexed for KindDef {
@@ -58,8 +125,11 @@ pub struct PosDef {
     #[serde(default = "default_suffix_range", skip_serializing_if = "Option::is_none")]
     pub suffix_range: Option<SuffixRangeDef>,
 
+    #[serde(default = "Vec::new", skip_serializing_if = "Vec::is_empty")]
+    pub suffixes: Vec<SuffixDef>,
+
     #[serde(default = "default_false", skip_serializing_if = "ignore_if_false")]
-    pub shared: bool,
+    pub separate: bool,
 
     #[serde(default = "default_false", skip_serializing_if = "ignore_if_false")]
     pub ordered: bool,
@@ -71,6 +141,70 @@ pub struct PosDef {
 impl Indexed for PosDef {
     fn as_usize(&self) -> usize {
         self.id as usize
+    }
+}
+
+pub struct PosDefBuilder {
+    label: String,
+    id: Option<u32>,
+    suffix_range: Option<SuffixRangeDef>,
+    suffixes: Vec<SuffixDef>,
+    separate: bool,
+    ordered: bool,
+    hidden: bool,
+}
+
+impl PosDef {
+    pub fn new<T: AsRef<str>>(label: T) -> PosDefBuilder {
+        PosDefBuilder {
+            label: label.as_ref().to_owned(),
+            id: None,
+            suffix_range: None,
+            suffixes: Vec::new(),
+            separate: false,
+            ordered: false,
+            hidden: false,
+        }
+    }
+}
+
+impl PosDefBuilder {
+    pub fn suffix_range(mut self, min: i32, max: i32) -> Self {
+        self.suffix_range = Some(SuffixRangeDef { min, max });
+        self
+    }
+
+    pub fn suffix(mut self, bld: SuffixDefBuilder) -> Self {
+        let next_id = (self.suffixes.len() + 1) as u32;
+        self.suffixes.push(bld.build(next_id));
+        self
+    }
+
+    pub fn hidden(mut self) -> Self {
+        self.hidden = true;
+        self
+    }
+
+    pub fn ordered(mut self) -> Self {
+        self.ordered = true;
+        self
+    }
+
+    pub fn separate(mut self) -> Self {
+        self.separate = true;
+        self
+    }
+
+    fn build(self, next_id: u32) -> PosDef {
+        PosDef {
+            label: self.label,
+            id: self.id.unwrap_or(next_id),
+            suffix_range: self.suffix_range,
+            suffixes: self.suffixes,
+            separate: self.separate,
+            ordered: self.ordered,
+            hidden: self.hidden,
+        }
     }
 }
 
@@ -103,88 +237,25 @@ impl GameDefBuilder {
         }
     }
 
-    pub fn min_players(&mut self, num: u32) -> &mut GameDefBuilder {
+    pub fn min_players(mut self, num: u32) -> Self {
         self.min_players = num;
         self
     }
 
-    pub fn max_players(&mut self, num: u32) -> &mut GameDefBuilder {
+    pub fn max_players(mut self, num: u32) -> Self {
         self.max_players = num;
         self
     }
 
-    pub fn add_kind<T: AsRef<str>>(
-        &mut self,
-        label: T,
-    ) -> &mut GameDefBuilder {
-        let id = self.kind_defs.len() + 1;
-        let id = id as u32;
-        self.kind_defs.push(KindDef {
-            label: label.as_ref().to_owned(),
-            id,
-            suffix_range: None,
-        });
+    pub fn kind(mut self, bld: KindDefBuilder) -> Self {
+        let next_id = (self.kind_defs.len() + 1) as u32;
+        self.kind_defs.push(bld.build(next_id));
         self
     }
 
-    pub fn add_range_kind<T: AsRef<str>>(
-        &mut self,
-        label: T,
-        min: i32,
-        max: i32,
-    ) -> &mut GameDefBuilder {
-        let id = self.kind_defs.len() + 1;
-        let id = id as u32;
-        self.kind_defs.push(KindDef {
-            label: label.as_ref().to_owned(),
-            id,
-            suffix_range: Some(SuffixRangeDef { min, max }),
-        });
-        self
-    }
-
-
-    pub fn add_pos<T: AsRef<str>>(
-        &mut self,
-        label: T,
-        flags: PosFlags,
-    ) -> &mut GameDefBuilder {
-        let id = self.pos_defs.len() + 1;
-        let id = id as u32;
-        let shared = flags.contains(PosFlags::SHARED);
-        let ordered = flags.contains(PosFlags::ORDERED);
-        let hidden = flags.contains(PosFlags::HIDDEN);
-        self.pos_defs.push(PosDef {
-            label: label.as_ref().to_owned(),
-            id,
-            suffix_range: None,
-            shared,
-            ordered,
-            hidden,
-        });
-        self
-    }
-
-    pub fn add_range_pos<T: AsRef<str>>(
-        &mut self,
-        label: T,
-        min: i32,
-        max: i32,
-        flags: PosFlags,
-    ) -> &mut GameDefBuilder {
-        let id = self.pos_defs.len() + 1;
-        let id = id as u32;
-        let shared = flags.contains(PosFlags::SHARED);
-        let ordered = flags.contains(PosFlags::ORDERED);
-        let hidden = flags.contains(PosFlags::HIDDEN);
-        self.pos_defs.push(PosDef {
-            label: label.as_ref().to_owned(),
-            id,
-            suffix_range: Some(SuffixRangeDef { min, max }),
-            shared,
-            ordered,
-            hidden,
-        });
+    pub fn pos(mut self, bld: PosDefBuilder) -> Self {
+        let next_id = (self.pos_defs.len() + 1) as u32;
+        self.pos_defs.push(bld.build(next_id));
         self
     }
 
@@ -206,21 +277,26 @@ mod test {
 
     #[test]
     fn can_build_game_def() {
-        let mut bld = GameDefBuilder::new("whist");
-
-        bld.add_range_kind("card", 1, 52)
+        let def = GameDefBuilder::new("whist")
             .min_players(3)
             .max_players(5)
-            .add_kind("leader")
-            .add_kind("to_play")
-            .add_range_kind("suit", 1, 4)
-            .add_pos("deck", PosFlags::HIDDEN | PosFlags::SHARED)
-            .add_pos("discard", PosFlags::HIDDEN | PosFlags::SHARED)
-            .add_pos("hand", PosFlags::HIDDEN)
-            .add_pos("trick", PosFlags::NONE)
-            .add_pos("trump", PosFlags::SHARED);
-
-        let def = bld.build();
+            .kind(KindDef::new("card")
+                .suffix_range(1, 52)
+            )
+            .kind(KindDef::new("leader"))
+            .kind(KindDef::new("to_play"))
+            .kind(KindDef::new("suit")
+                .suffix(SuffixDef::new("hearts"))
+                .suffix(SuffixDef::new("clubs"))
+                .suffix(SuffixDef::new("diamonds"))
+                .suffix(SuffixDef::new("spades"))
+            )
+            .pos(PosDef::new("deck").hidden())
+            .pos(PosDef::new("discard").hidden())
+            .pos(PosDef::new("hand").hidden().separate())
+            .pos(PosDef::new("trick").separate())
+            .pos(PosDef::new("trump"))
+            .build();
 
         let s = serde_yaml::to_string(&def).unwrap();
         assert_eq!(s, "---
@@ -239,26 +315,31 @@ kind_defs:
     id: 3
   - label: suit
     id: 4
-    suffix_range:
-      min: 1
-      max: 4
+    suffixes:
+      - label: hearts
+        id: 1
+      - label: clubs
+        id: 2
+      - label: diamonds
+        id: 3
+      - label: spades
+        id: 4
 pos_defs:
   - label: deck
     id: 1
-    shared: true
     hidden: true
   - label: discard
     id: 2
-    shared: true
     hidden: true
   - label: hand
     id: 3
+    separate: true
     hidden: true
   - label: trick
     id: 4
+    separate: true
   - label: trump
-    id: 5
-    shared: true");
+    id: 5");
 
         let deserialized_point: GameDef = serde_yaml::from_str(&s).unwrap();
         assert_eq!(def, deserialized_point);
