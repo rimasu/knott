@@ -1,6 +1,6 @@
 use std::convert::{TryFrom, TryInto};
 use crate::specs::pos::{Pos, InvalidPos};
-use crate::specs::suffix::{SuffixRange, convert_optional_suffix_range};
+use crate::specs::suffix::{convert_suffixes, Suffixes};
 use crate::lookup::{Indexed, Labelled};
 use crate::defs::PosDef;
 use crate::error::ItemError;
@@ -9,7 +9,7 @@ use crate::error::ItemError;
 pub struct PosSpec {
     label: String,
     id: Pos,
-    suffix_range: Option<SuffixRange>,
+    suffixes: Suffixes,
     separate: bool,
     ordered: bool,
     hidden: bool,
@@ -38,12 +38,12 @@ impl TryFrom<PosDef> for PosSpec {
 
     fn try_from(def: PosDef) -> Result<Self, Self::Error> {
         let id: Pos = def.id.try_into()?;
-        let suffix_range = convert_optional_suffix_range(def.suffix_range)?;
+        let suffixes = convert_suffixes(def.suffix_range, def.suffixes)?;
 
         Ok(PosSpec {
             label: def.label.to_owned(),
             id: id.to_owned(),
-            suffix_range,
+            suffixes,
             separate: def.separate,
             ordered: def.ordered,
             hidden: def.hidden,

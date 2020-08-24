@@ -10,6 +10,7 @@ pub trait Labelled {
     fn label(&self) -> &str;
 }
 
+#[derive(Debug, PartialEq)]
 pub struct LookupTable<V> {
     entries: Vec<Option<V>>,
     label_index: HashMap<String, usize>,

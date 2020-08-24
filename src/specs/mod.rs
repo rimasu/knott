@@ -1,11 +1,8 @@
 use std::convert::{TryFrom, TryInto};
 
-use crate::defs::{GameDef, PosDef, SuffixRangeDef, KindDef};
-use crate::error::{Error, ItemError};
-use crate::specs::kind::{Kind, InvalidKind};
-use crate::specs::pos::{Pos, InvalidPos};
-use crate::lookup::{Indexed, Labelled, LookupTable};
-use crate::specs::suffix::{SuffixRange, convert_optional_suffix_range};
+use crate::defs::GameDef;
+use crate::error::Error;
+use crate::lookup:: LookupTable;
 use crate::specs::pos_spec::PosSpec;
 use crate::specs::kind_spec::KindSpec;
 
@@ -47,7 +44,7 @@ impl TryFrom<GameDef> for GameSpec {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::defs::{GameDefBuilder, PosFlags, SuffixDef};
+    use crate::defs::{GameDefBuilder, PosFlags, SuffixDef, KindDef, PosDef};
     use std::convert::TryInto;
 
     #[test]

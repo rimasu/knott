@@ -34,6 +34,12 @@ pub struct SuffixDef {
     pub id: u32,
 }
 
+impl Indexed for SuffixDef {
+    fn as_usize(&self) -> usize {
+        self.id as usize
+    }
+}
+
 pub struct SuffixDefBuilder {
     pub label: String,
     pub id: Option<u32>,

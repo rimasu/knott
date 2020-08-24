@@ -1,6 +1,6 @@
 use std::convert::{TryFrom, TryInto};
 use crate::specs::kind::{Kind, InvalidKind};
-use crate::specs::suffix::{SuffixRange, convert_optional_suffix_range};
+use crate::specs::suffix::{convert_suffixes, Suffixes};
 use crate::lookup::{Indexed, Labelled};
 use crate::defs::KindDef;
 use crate::error::ItemError;
@@ -9,7 +9,7 @@ use crate::error::ItemError;
 pub struct KindSpec {
     label: String,
     id: Kind,
-    suffix_range: Option<SuffixRange>,
+    suffixes: Suffixes,
 }
 
 impl Indexed for KindSpec {
@@ -36,12 +36,12 @@ impl TryFrom<KindDef> for KindSpec {
 
     fn try_from(def: KindDef) -> Result<Self, Self::Error> {
         let id: Kind = def.id.try_into()?;
-        let suffix_range = convert_optional_suffix_range(def.suffix_range)?;
+        let suffixes = convert_suffixes(def.suffix_range, def.suffixes)?;
 
         Ok(KindSpec {
             label: def.label.to_owned(),
             id: id.to_owned(),
-            suffix_range,
+            suffixes,
         })
     }
 }
