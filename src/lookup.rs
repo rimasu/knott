@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::convert::{TryFrom, TryInto};
 use std::fmt::Debug;
+use std::fmt;
 
 pub trait Indexed {
     fn as_usize(&self) -> usize;
@@ -10,11 +11,23 @@ pub trait Labelled {
     fn label(&self) -> &str;
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(PartialEq)]
 pub struct LookupTable<V> {
     entries: Vec<Option<V>>,
     label_index: HashMap<String, usize>,
 }
+
+impl <T> fmt::Debug for LookupTable<T> where T: Debug {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for entry in &self.entries {
+            if let Some(entry) = entry {
+                write!(f, "\n{:?}", entry)?;
+            }
+        }
+        Ok(())
+    }
+}
+
 
 impl<V> LookupTable<V> where V: Indexed + Labelled {
     pub fn new(max_index: usize) -> LookupTable<V> {

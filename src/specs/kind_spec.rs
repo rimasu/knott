@@ -7,9 +7,9 @@ use crate::error::ItemError;
 
 #[derive(Debug, PartialEq)]
 pub struct KindSpec {
-    label: String,
-    id: Kind,
-    suffixes: Suffixes,
+    pub label: String,
+    pub id: Kind,
+    pub suffixes: Suffixes,
 }
 
 impl Indexed for KindSpec {

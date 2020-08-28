@@ -7,12 +7,12 @@ use crate::error::ItemError;
 
 #[derive(Debug, PartialEq)]
 pub struct PosSpec {
-    label: String,
-    id: Pos,
-    suffixes: Suffixes,
-    separate: bool,
-    ordered: bool,
-    hidden: bool,
+    pub(crate) label: String,
+    pub(crate) id: Pos,
+    pub(crate) suffixes: Suffixes,
+    pub(crate) separate: bool,
+    pub(crate) ordered: bool,
+    pub(crate) hidden: bool,
 }
 
 impl Indexed for PosSpec {

@@ -2,14 +2,21 @@ use std::convert::{TryFrom, TryInto};
 use crate::defs::{SuffixRangeDef, SuffixDef};
 use crate::error::{ItemError, SuffixRowError};
 use crate::lookup::{LookupTable, Indexed, Labelled};
+use std::fmt;
 
-#[derive(Debug, PartialEq)]
-pub struct Suffix(i32);
+#[derive(PartialEq)]
+pub struct Suffix(pub i32);
 
-#[derive(Debug, PartialEq)]
+impl fmt::Debug for Suffix {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:+}", self.0)
+    }
+}
+
+#[derive(PartialEq)]
 pub struct SuffixRow {
-    suffix: Suffix,
-    label: String,
+    pub suffix: Suffix,
+    pub label: String,
 }
 
 impl Indexed for SuffixRow {
@@ -24,6 +31,12 @@ impl Labelled for SuffixRow {
     }
 }
 
+impl fmt::Debug for SuffixRow {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "\t{:?} {:?}", self.suffix, self.label)
+    }
+}
+
 impl TryFrom<SuffixDef> for SuffixRow {
     type Error = SuffixRowError;
     fn try_from(value: SuffixDef) -> Result<Self, Self::Error> {
@@ -33,17 +46,33 @@ impl TryFrom<SuffixDef> for SuffixRow {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(PartialEq)]
 pub struct SuffixRange {
-    min: Suffix,
-    max: Suffix,
+    pub min: Suffix,
+    pub max: Suffix,
 }
 
-#[derive(Debug, PartialEq)]
+impl fmt::Debug for SuffixRange {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?} -> {:?}", self.min, self.max)
+    }
+}
+
+#[derive(PartialEq)]
 pub enum Suffixes {
     Empty,
     Range(SuffixRange),
     Table(LookupTable<SuffixRow>),
+}
+
+impl fmt::Debug for Suffixes {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Suffixes::Empty => write!(f, "empty"),
+            Suffixes::Table(table) => write!(f, "{:?}", table),
+            Suffixes::Range(range)=> write!(f, "{:?}", range)
+        }
+    }
 }
 
 impl TryFrom<SuffixRangeDef> for SuffixRange {
