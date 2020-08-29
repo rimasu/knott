@@ -1,15 +1,6 @@
 use serde::{Serialize, Deserialize};
 use crate::lookup::Indexed;
 
-bitflags! {
-    pub struct PosFlags: u8 {
-        const NONE  = 0b00000000;
-        const HIDDEN  = 0b00000001;
-        const SHARED  = 0b00000010;
-        const ORDERED = 0b00000100;
-    }
-}
-
 fn default_suffix_range() -> Option<SuffixRangeDef> {
     None
 }
