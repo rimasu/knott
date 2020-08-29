@@ -6,9 +6,7 @@ use crate::lookup::LookupTable;
 use crate::specs::pos_spec::PosSpec;
 use crate::specs::kind_spec::KindSpec;
 
-pub mod suffix;
-pub mod pos;
-pub mod kind;
+pub mod suffix_spec;
 pub mod pos_spec;
 pub mod kind_spec;
 
@@ -45,9 +43,10 @@ impl TryFrom<GameDef> for GameSpec {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::defs::{GameDefBuilder, SuffixDef, KindDef, PosDef};
     use std::convert::TryInto;
-    use crate::specs::suffix::{Suffixes, SuffixRange, Suffix, SuffixRow};
+    use crate::defs::{GameDefBuilder, SuffixDef, KindDef, PosDef};
+    use crate::specs::suffix_spec::{SuffixSpec, SuffixRange, SuffixRow};
+    use crate::coords::Suffix;
 
     #[test]
     fn can_convert_def_into_spec() {
@@ -81,7 +80,7 @@ mod test {
             KindSpec {
                 label: "card".to_string(),
                 id: 1.try_into().unwrap(),
-                suffixes: Suffixes::Range(SuffixRange {
+                suffixes: SuffixSpec::Range(SuffixRange {
                     min: Suffix(1),
                     max: Suffix(52)
                 })
@@ -92,7 +91,7 @@ mod test {
             KindSpec {
                 label: "leader".to_string(),
                 id: 2.try_into().unwrap(),
-                suffixes: Suffixes::Empty,
+                suffixes: SuffixSpec::Empty,
             }
         );
 
@@ -100,7 +99,7 @@ mod test {
             KindSpec {
                 label: "to_play".to_string(),
                 id: 3.try_into().unwrap(),
-                suffixes: Suffixes::Empty,
+                suffixes: SuffixSpec::Empty,
             }
         );
 
@@ -129,7 +128,7 @@ mod test {
             KindSpec {
                 label: "suit".to_string(),
                 id: 4.try_into().unwrap(),
-                suffixes: Suffixes::Table(suit_table),
+                suffixes: SuffixSpec::Table(suit_table),
             }
         );
 
@@ -139,7 +138,7 @@ mod test {
             PosSpec {
                 label: "deck".to_string(),
                 id: 1.try_into().unwrap(),
-                suffixes: Suffixes::Empty,
+                suffixes: SuffixSpec::Empty,
                 separate: false,
                 ordered: false,
                 hidden: true,
@@ -150,7 +149,7 @@ mod test {
             PosSpec {
                 label: "discard".to_string(),
                 id: 2.try_into().unwrap(),
-                suffixes: Suffixes::Empty,
+                suffixes: SuffixSpec::Empty,
                 separate: false,
                 ordered: false,
                 hidden: true,
@@ -162,7 +161,7 @@ mod test {
             PosSpec {
                 label: "hand".to_string(),
                 id: 3.try_into().unwrap(),
-                suffixes: Suffixes::Empty,
+                suffixes: SuffixSpec::Empty,
                 separate: true,
                 ordered: false,
                 hidden: true,
@@ -173,7 +172,7 @@ mod test {
             PosSpec {
                 label: "trick".to_string(),
                 id: 4.try_into().unwrap(),
-                suffixes: Suffixes::Empty,
+                suffixes: SuffixSpec::Empty,
                 separate: true,
                 ordered: false,
                 hidden: false,
@@ -184,7 +183,7 @@ mod test {
             PosSpec {
                 label: "trump".to_string(),
                 id: 5.try_into().unwrap(),
-                suffixes: Suffixes::Empty,
+                suffixes: SuffixSpec::Empty,
                 separate: false,
                 ordered: false,
                 hidden: false,

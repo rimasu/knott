@@ -1,15 +1,15 @@
 use std::convert::{TryFrom, TryInto};
-use crate::specs::kind::{Kind, InvalidKind};
-use crate::specs::suffix::{convert_suffixes, Suffixes};
+use crate::specs::suffix_spec::{convert_suffixes, SuffixSpec};
 use crate::lookup::{Indexed, Labelled};
 use crate::defs::KindDef;
 use crate::error::ItemError;
+use crate::coords::{Kind, InvalidKind};
 
 #[derive(Debug, PartialEq)]
 pub struct KindSpec {
     pub label: String,
     pub id: Kind,
-    pub suffixes: Suffixes,
+    pub suffixes: SuffixSpec,
 }
 
 impl Indexed for KindSpec {

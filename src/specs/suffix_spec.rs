@@ -1,17 +1,10 @@
+use std::fmt;
 use std::convert::{TryFrom, TryInto};
 use crate::defs::{SuffixRangeDef, SuffixDef};
 use crate::error::{ItemError, SuffixRowError};
 use crate::lookup::{LookupTable, Indexed, Labelled};
-use std::fmt;
+use crate::coords::Suffix;
 
-#[derive(PartialEq)]
-pub struct Suffix(pub i32);
-
-impl fmt::Debug for Suffix {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:+}", self.0)
-    }
-}
 
 #[derive(PartialEq)]
 pub struct SuffixRow {
@@ -59,18 +52,18 @@ impl fmt::Debug for SuffixRange {
 }
 
 #[derive(PartialEq)]
-pub enum Suffixes {
+pub enum SuffixSpec {
     Empty,
     Range(SuffixRange),
     Table(LookupTable<SuffixRow>),
 }
 
-impl fmt::Debug for Suffixes {
+impl fmt::Debug for SuffixSpec {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Suffixes::Empty => write!(f, "empty"),
-            Suffixes::Table(table) => write!(f, "{:?}", table),
-            Suffixes::Range(range)=> write!(f, "{:?}", range)
+            SuffixSpec::Empty => write!(f, "empty"),
+            SuffixSpec::Table(table) => write!(f, "{:?}", table),
+            SuffixSpec::Range(range)=> write!(f, "{:?}", range)
         }
     }
 }
@@ -91,19 +84,25 @@ impl TryFrom<SuffixRangeDef> for SuffixRange {
 pub fn convert_suffixes(
     range: Option<SuffixRangeDef>,
     suffixes: Vec<SuffixDef>,
-) -> Result<Suffixes, ItemError> {
+) -> Result<SuffixSpec, ItemError> {
     if let Some(range) = range {
         if !suffixes.is_empty() {
             Err(ItemError::SuffixesAndRangeDefined)
         } else {
             range.try_into()
-                .map(|r| Suffixes::Range(r))
+                .map(|r| SuffixSpec::Range(r))
         }
     } else if !suffixes.is_empty() {
         suffixes.try_into()
             .map_err(|e| ItemError::InvalidSuffixRow(e))
-            .map(|t| Suffixes::Table(t))
+            .map(|t| SuffixSpec::Table(t))
     } else {
-        Ok(Suffixes::Empty)
+        Ok(SuffixSpec::Empty)
     }
+}
+
+
+#[cfg(test)]
+mod test {
+
 }

@@ -1,15 +1,15 @@
 use std::convert::{TryFrom, TryInto};
-use crate::specs::pos::{Pos, InvalidPos};
-use crate::specs::suffix::{convert_suffixes, Suffixes};
+use crate::specs::suffix_spec::{convert_suffixes, SuffixSpec};
 use crate::lookup::{Indexed, Labelled};
 use crate::defs::PosDef;
 use crate::error::ItemError;
+use crate::coords::{Pos, InvalidPos};
 
 #[derive(Debug, PartialEq)]
 pub struct PosSpec {
     pub(crate) label: String,
     pub(crate) id: Pos,
-    pub(crate) suffixes: Suffixes,
+    pub(crate) suffixes: SuffixSpec,
     pub(crate) separate: bool,
     pub(crate) ordered: bool,
     pub(crate) hidden: bool,
