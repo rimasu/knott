@@ -1,23 +1,22 @@
 use std::convert::{TryFrom, TryInto};
 use crate::specs::suffix_spec::{convert_suffixes, SuffixSpec};
-use crate::lookup::{Indexed, Labelled};
+use crate::lookup::{Labelled, HasId};
 use crate::defs::KindDef;
 use crate::error::ItemError;
 use crate::coords::{Kind, InvalidKind};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct KindSpec {
     pub label: String,
     pub id: Kind,
     pub suffixes: SuffixSpec,
 }
 
-impl Indexed for KindSpec {
-    fn as_usize(&self) -> usize {
-        self.id.as_usize()
+impl HasId<Kind> for KindSpec {
+    fn id(&self) -> Kind {
+        self.id
     }
 }
-
 impl Labelled for KindSpec {
     fn label(&self) -> &str {
         &self.label
@@ -29,7 +28,6 @@ impl From<InvalidKind> for ItemError {
         ItemError::InvalidId(e.0)
     }
 }
-
 
 impl TryFrom<KindDef> for KindSpec {
     type Error = ItemError;

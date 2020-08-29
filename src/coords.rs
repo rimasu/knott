@@ -3,13 +3,13 @@ use std::convert::TryFrom;
 use std::fmt;
 use crate::lookup::Indexed;
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Hash, Eq, PartialEq, Copy, Clone)]
 pub struct Kind(NonZeroU16);
 
 static MIN_KIND: u32 = 1;
 static MAX_KIND: u32 = 9999;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct InvalidKind(pub u32);
 
 impl TryFrom<u32> for Kind {
@@ -51,8 +51,7 @@ impl Kind {
     }
 }
 
-
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Hash, Eq, PartialEq, Copy, Clone)]
 pub struct Pos(NonZeroU16);
 
 static MIN_POS: u32 = 1;
@@ -100,7 +99,7 @@ impl Pos {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Hash, Eq, PartialEq, Copy, Clone)]
 pub struct Suffix(pub i32);
 
 impl fmt::Debug for Suffix {

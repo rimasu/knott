@@ -1,5 +1,4 @@
 use serde::{Serialize, Deserialize};
-use crate::lookup::Indexed;
 
 fn default_suffix_range() -> Option<SuffixRangeDef> {
     None
@@ -23,12 +22,6 @@ pub struct SuffixRangeDef {
 pub struct SuffixDef {
     pub label: String,
     pub id: u32,
-}
-
-impl Indexed for SuffixDef {
-    fn as_usize(&self) -> usize {
-        self.id as usize
-    }
 }
 
 pub struct SuffixDefBuilder {
@@ -107,12 +100,6 @@ impl KindDefBuilder {
     }
 }
 
-impl Indexed for KindDef {
-    fn as_usize(&self) -> usize {
-        self.id as usize
-    }
-}
-
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct PosDef {
@@ -133,12 +120,6 @@ pub struct PosDef {
 
     #[serde(default = "default_false", skip_serializing_if = "ignore_if_false")]
     pub hidden: bool,
-}
-
-impl Indexed for PosDef {
-    fn as_usize(&self) -> usize {
-        self.id as usize
-    }
 }
 
 pub struct PosDefBuilder {

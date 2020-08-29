@@ -1,11 +1,11 @@
 use std::convert::{TryFrom, TryInto};
 use crate::specs::suffix_spec::{convert_suffixes, SuffixSpec};
-use crate::lookup::{Indexed, Labelled};
+use crate::lookup::{Labelled, HasId};
 use crate::defs::PosDef;
 use crate::error::ItemError;
 use crate::coords::{Pos, InvalidPos};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct PosSpec {
     pub(crate) label: String,
     pub(crate) id: Pos,
@@ -15,9 +15,9 @@ pub struct PosSpec {
     pub(crate) hidden: bool,
 }
 
-impl Indexed for PosSpec {
-    fn as_usize(&self) -> usize {
-        self.id.as_usize()
+impl HasId<Pos> for PosSpec {
+    fn id(&self) -> Pos {
+        self.id
     }
 }
 

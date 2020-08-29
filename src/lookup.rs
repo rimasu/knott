@@ -1,111 +1,111 @@
 use std::collections::HashMap;
-use std::convert::{TryFrom, TryInto};
+use std::convert::TryFrom;
 use std::fmt::Debug;
 use std::fmt;
+use std::hash::Hash;
+use std::collections::hash_map::Entry;
+
+pub trait HasId<I> {
+    fn id(&self) -> I;
+}
 
 pub trait Indexed {
     fn as_usize(&self) -> usize;
 }
 
+
 pub trait Labelled {
     fn label(&self) -> &str;
 }
 
-#[derive(PartialEq)]
-pub struct LookupTable<V> {
-    entries: Vec<Option<V>>,
-    label_index: HashMap<String, usize>,
+
+
+#[derive(Clone)]
+pub struct LookupTable<I, V>  where I: Hash + PartialEq + Clone, V: Clone{
+    values: HashMap<I, V>,
+    label_index: HashMap<String, I>,
 }
 
-impl<T> fmt::Debug for LookupTable<T> where T: Debug {
+impl<I, V> fmt::Debug for LookupTable<I, V> where I: Hash + PartialEq + Clone, V: Debug + Clone {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for entry in &self.entries {
-            if let Some(entry) = entry {
-                write!(f, "\n{:?}", entry)?;
-            }
+        for (_, value) in &self.values {
+            write!(f, "\n{:?}", value)?;
         }
         Ok(())
     }
 }
 
 
-impl<V> LookupTable<V> where V: Indexed + Labelled {
-    pub fn new(max_index: usize) -> LookupTable<V> {
-        let entries = (0..(max_index + 1)).map(|_| None).collect();
+impl<I, V> LookupTable<I, V> where I: Hash + PartialEq + Eq + Debug + Clone, V: Labelled + HasId<I> + Clone {
+
+    pub fn new() -> LookupTable<I, V> {
         LookupTable {
-            entries,
+            values: HashMap::new(),
             label_index: HashMap::new(),
         }
     }
 
-    pub fn push(&mut self, item: V) {
-        let index = item.as_usize();
-        self.label_index.insert(item.label().to_owned(), index);
-        self.entries[index] = Some(item);
+    pub fn with_capacity(capacity: usize) -> LookupTable<I, V> {
+        LookupTable {
+            values: HashMap::with_capacity(capacity),
+            label_index: HashMap::with_capacity(capacity),
+        }
     }
 
-    pub fn find(&self, index: usize) -> Option<&V> {
-        if index < self.entries.len() {
-            self.entries[index].as_ref()
+    pub fn push(&mut self, item: &V) -> Result<(), Collision<I>> {
+        if let Entry::Vacant(e) = self.values.entry(item.id()) {
+            if let Entry::Vacant(e2) = self.label_index.entry(item.label().to_owned()) {
+                e2.insert(item.id());
+                e.insert(item.clone());
+                Ok(())
+            } else  {
+                Err(Collision::LabelCollision(item.label().to_owned()))
+            }
         } else {
-            None
+            Err(Collision::IdCollision(item.id()))
         }
     }
 
-    pub fn find_by_label(&self, label: &str) -> Option<&V> {
+    pub fn find(&self, index: &I) -> Option<&V> {
+        self.values.get(index)
+    }
+
+    pub fn find_by_label<T: AsRef<str>>(&self, label: T) -> Option<&V> {
         self.label_index
-            .get(label)
-            .and_then(|i| self.entries[*i].as_ref())
+            .get(label.as_ref())
+            .map(|i| &self.values[i])
     }
 }
 
-#[derive(Debug, PartialEq)]
-pub enum ConvertError<E> where E: Debug + PartialEq {
-    IndexCollision(usize, usize),
-    LabelCollision(usize, String),
-    ItemConvert(usize, E),
-}
+impl<I, V> TryFrom<Vec<V>> for LookupTable<I, V> where I: Hash + PartialEq + Eq + Copy + Debug,
+                                                        V: Labelled + HasId<I> + Clone + Debug {
+    type Error = Collision<I>;
 
-impl<D, S, E> TryFrom<Vec<D>> for LookupTable<S> where D: TryInto<S, Error=E> + Indexed, S: Indexed + Labelled, E: Debug + PartialEq {
-    type Error = ConvertError<E>;
-
-    fn try_from(value: Vec<D>) -> Result<Self, Self::Error> {
-        let max_index = value
-            .iter()
-            .map(|t| t.as_usize())
-            .max()
-            .unwrap_or(0) as usize;
-
-        let mut table = LookupTable::new(max_index);
-        let mut idx = 0;
-        for def in value {
-            idx += 1;
-            let spec: S = def.try_into().map_err(|e| ConvertError::ItemConvert(idx, e))?;
-
-            if table.find(spec.as_usize()).is_some() {
-                return Err(ConvertError::IndexCollision(idx, spec.as_usize()));
-            }
-
-            if table.find_by_label(spec.label()).is_some() {
-                return Err(ConvertError::LabelCollision(idx, spec.label().to_owned()));
-            }
-
-            table.push(spec);
+    fn try_from(values: Vec<V>) -> Result<Self, Self::Error> {
+        let mut table = LookupTable::with_capacity(values.len());
+        for value in values {
+            table.push(&value)?;
         }
-
         Ok(table)
     }
 }
 
+
+#[derive(Debug, PartialEq)]
+pub enum Collision<I> where I: Debug + PartialEq {
+    IdCollision(I),
+    LabelCollision(String),
+}
+
+
 #[cfg(test)]
 mod test {
-    use crate::lookup::{Labelled, Indexed, LookupTable, ConvertError};
+    use super::*;
     use std::convert::TryInto;
-    use crate::lookup::ConvertError::{LabelCollision, IndexCollision};
 
-    #[derive(Debug, PartialEq, Clone)]
+    #[derive(Debug, Clone, PartialEq)]
     struct Dummy {
-        id: usize,
+        id: u32,
         label: String,
     }
 
@@ -115,8 +115,8 @@ mod test {
         }
     }
 
-    impl Indexed for Dummy {
-        fn as_usize(&self) -> usize {
+    impl HasId<u32> for Dummy {
+        fn id(&self) -> u32 {
             self.id
         }
     }
@@ -129,19 +129,19 @@ mod test {
 
         let items = vec![a1.clone(), b4.clone(), c3.clone()];
 
-        let lookup: LookupTable<Dummy> = items.try_into().unwrap();
+        let lookup: LookupTable<u32, Dummy> = items.try_into().unwrap();
 
         assert_eq!(Some(&a1), lookup.find_by_label("A"));
         assert_eq!(Some(&b4), lookup.find_by_label("B"));
         assert_eq!(Some(&c3), lookup.find_by_label("C"));
         assert_eq!(None, lookup.find_by_label("D"));
 
-        assert_eq!(None, lookup.find(0));
-        assert_eq!(Some(&a1), lookup.find(1));
-        assert_eq!(None, lookup.find(2));
-        assert_eq!(Some(&c3), lookup.find(3));
-        assert_eq!(Some(&b4), lookup.find(4));
-        assert_eq!(None, lookup.find(5));
+        assert_eq!(None, lookup.find(&0));
+        assert_eq!(Some(&a1), lookup.find(&1));
+        assert_eq!(None, lookup.find(&2));
+        assert_eq!(Some(&c3), lookup.find(&3));
+        assert_eq!(Some(&b4), lookup.find(&4));
+        assert_eq!(None, lookup.find(&5));
     }
 
     #[test]
@@ -152,10 +152,10 @@ mod test {
 
         let items = vec![a1.clone(), b4.clone(), b3.clone()];
 
-        let result: Result<LookupTable<Dummy>, ConvertError<_>> = items.try_into();
+        let result: Result<LookupTable<u32, Dummy>, Collision<u32>> = items.try_into();
 
         assert_eq!(
-            LabelCollision(3, "B".to_owned()),
+            Collision::LabelCollision("B".to_owned()),
             result.unwrap_err()
         )
     }
@@ -168,10 +168,10 @@ mod test {
 
         let items = vec![a1.clone(), b4.clone(), c4.clone()];
 
-        let result: Result<LookupTable<Dummy>, ConvertError<_>> = items.try_into();
+        let result: Result<LookupTable<u32, Dummy>, Collision<u32>> = items.try_into();
 
         assert_eq!(
-            IndexCollision(3, 4),
+            Collision::IdCollision(4),
             result.unwrap_err()
         )
     }

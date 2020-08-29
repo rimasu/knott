@@ -2,19 +2,20 @@ use std::fmt;
 use std::convert::{TryFrom, TryInto};
 use crate::defs::{SuffixRangeDef, SuffixDef};
 use crate::error::{ItemError, SuffixRowError};
-use crate::lookup::{LookupTable, Indexed, Labelled};
+use crate::lookup::{LookupTable, Labelled, HasId};
 use crate::coords::Suffix;
 
 
-#[derive(PartialEq)]
+
+#[derive(Clone)]
 pub struct SuffixRow {
     pub suffix: Suffix,
     pub label: String,
 }
 
-impl Indexed for SuffixRow {
-    fn as_usize(&self) -> usize {
-        self.suffix.0 as usize
+impl HasId<Suffix> for SuffixRow {
+    fn id(&self) -> Suffix {
+        self.suffix
     }
 }
 
@@ -39,7 +40,7 @@ impl TryFrom<SuffixDef> for SuffixRow {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Clone)]
 pub struct SuffixRange {
     pub min: Suffix,
     pub max: Suffix,
@@ -51,11 +52,11 @@ impl fmt::Debug for SuffixRange {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Clone)]
 pub enum SuffixSpec {
     Empty,
     Range(SuffixRange),
-    Table(LookupTable<SuffixRow>),
+    Table(LookupTable<Suffix, SuffixRow>),
 }
 
 impl fmt::Debug for SuffixSpec {
@@ -93,8 +94,16 @@ pub fn convert_suffixes(
                 .map(|r| SuffixSpec::Range(r))
         }
     } else if !suffixes.is_empty() {
-        suffixes.try_into()
-            .map_err(|e| ItemError::InvalidSuffixRow(e))
+        let mut rows = Vec::with_capacity(suffixes.len());
+        for def in suffixes {
+            let row = def
+                .try_into()
+                .map_err(|e| ItemError::InvalidSuffixRow(e))?;
+
+            rows.push(row);
+        }
+        rows.try_into()
+            .map_err(|e| ItemError::InvalidSuffixTable(e))
             .map(|t| SuffixSpec::Table(t))
     } else {
         Ok(SuffixSpec::Empty)
