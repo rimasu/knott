@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 fn default_suffix_range() -> Option<SuffixRangeDef> {
     None
@@ -53,7 +53,10 @@ pub struct KindDef {
 
     pub id: u32,
 
-    #[serde(default = "default_suffix_range", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default = "default_suffix_range",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub suffix_range: Option<SuffixRangeDef>,
 
     #[serde(default = "Vec::new", skip_serializing_if = "Vec::is_empty")]
@@ -100,13 +103,15 @@ impl KindDefBuilder {
     }
 }
 
-
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct PosDef {
     pub label: String,
     pub id: u32,
 
-    #[serde(default = "default_suffix_range", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        default = "default_suffix_range",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub suffix_range: Option<SuffixRangeDef>,
 
     #[serde(default = "Vec::new", skip_serializing_if = "Vec::is_empty")]
@@ -186,7 +191,6 @@ impl PosDefBuilder {
     }
 }
 
-
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct GameDef {
     pub label: String,
@@ -248,7 +252,6 @@ impl GameDefBuilder {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -258,16 +261,15 @@ mod test {
         let def = GameDefBuilder::new("whist")
             .min_players(3)
             .max_players(5)
-            .kind(KindDef::new("card")
-                .suffix_range(1, 52)
-            )
+            .kind(KindDef::new("card").suffix_range(1, 52))
             .kind(KindDef::new("leader"))
             .kind(KindDef::new("to_play"))
-            .kind(KindDef::new("suit")
-                .suffix(SuffixDef::new("hearts"))
-                .suffix(SuffixDef::new("clubs"))
-                .suffix(SuffixDef::new("diamonds"))
-                .suffix(SuffixDef::new("spades"))
+            .kind(
+                KindDef::new("suit")
+                    .suffix(SuffixDef::new("hearts"))
+                    .suffix(SuffixDef::new("clubs"))
+                    .suffix(SuffixDef::new("diamonds"))
+                    .suffix(SuffixDef::new("spades")),
             )
             .pos(PosDef::new("deck").hidden())
             .pos(PosDef::new("discard").hidden())
@@ -277,7 +279,9 @@ mod test {
             .build();
 
         let s = serde_yaml::to_string(&def).unwrap();
-        assert_eq!(s, "---
+        assert_eq!(
+            s,
+            "---
 label: whist
 min_players: 3
 max_players: 5
@@ -317,7 +321,8 @@ pos_defs:
     id: 4
     separate: true
   - label: trump
-    id: 5");
+    id: 5"
+        );
 
         let deserialized_point: GameDef = serde_yaml::from_str(&s).unwrap();
         assert_eq!(def, deserialized_point);

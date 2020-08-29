@@ -1,9 +1,9 @@
-use std::convert::{TryFrom, TryInto};
-use crate::specs::suffix_spec::{convert_suffixes, SuffixSpec};
-use crate::lookup::{Labelled, HasId};
+use crate::coords::{InvalidKind, Kind};
 use crate::defs::KindDef;
 use crate::error::ItemError;
-use crate::coords::{Kind, InvalidKind};
+use crate::lookup::{HasId, Labelled};
+use crate::specs::suffix_spec::{convert_suffixes, SuffixSpec};
+use std::convert::{TryFrom, TryInto};
 
 #[derive(Debug, Clone)]
 pub struct KindSpec {
@@ -37,7 +37,7 @@ impl TryFrom<KindDef> for KindSpec {
         let suffixes = convert_suffixes(def.suffix_range, def.suffixes)?;
 
         Ok(KindSpec {
-            label: def.label.to_owned(),
+            label: def.label,
             id: id.to_owned(),
             suffixes,
         })

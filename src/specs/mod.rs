@@ -1,15 +1,15 @@
 use std::convert::{TryFrom, TryInto};
 
+use crate::coords::{Kind, Pos};
 use crate::defs::GameDef;
 use crate::error::Error;
 use crate::lookup::LookupTable;
-use crate::specs::pos_spec::PosSpec;
 use crate::specs::kind_spec::KindSpec;
-use crate::coords::{Kind, Pos};
+use crate::specs::pos_spec::PosSpec;
 
-pub mod suffix_spec;
-pub mod pos_spec;
 pub mod kind_spec;
+pub mod pos_spec;
+pub mod suffix_spec;
 
 #[derive(Debug, PartialEq)]
 pub struct PlayerNum(u8);
@@ -24,7 +24,9 @@ pub struct GameSpec {
 }
 
 fn convert_player_num(input: u32) -> Result<u8, Error> {
-    input.try_into().map_err(|_| Error::InvalidNumPlayers(input))
+    input
+        .try_into()
+        .map_err(|_| Error::InvalidNumPlayers(input))
 }
 
 impl TryFrom<GameDef> for GameSpec {
@@ -33,23 +35,21 @@ impl TryFrom<GameDef> for GameSpec {
     fn try_from(value: GameDef) -> Result<Self, Self::Error> {
         let mut kind_specs = Vec::with_capacity(value.kind_defs.len());
         for def in value.kind_defs {
-            let spec = def.try_into().map_err(|e| Error::InvalidKind(e))?;
+            let spec = def.try_into().map_err(Error::InvalidKind)?;
             kind_specs.push(spec);
         }
 
-        let kind_specs: LookupTable<Kind, KindSpec> = kind_specs
-            .try_into()
-            .map_err(|e| Error::InvalidKindTable(e))?;
+        let kind_specs: LookupTable<Kind, KindSpec> =
+            kind_specs.try_into().map_err(Error::InvalidKindTable)?;
 
         let mut pos_specs = Vec::with_capacity(value.pos_defs.len());
         for def in value.pos_defs {
-            let spec = def.try_into().map_err(|e| Error::InvalidPos(e))?;
+            let spec = def.try_into().map_err(Error::InvalidPos)?;
             pos_specs.push(spec);
         }
 
-        let pos_specs: LookupTable<Pos, PosSpec> = pos_specs
-            .try_into()
-            .map_err(|e| Error::InvalidPosTable(e))?;
+        let pos_specs: LookupTable<Pos, PosSpec> =
+            pos_specs.try_into().map_err(Error::InvalidPosTable)?;
 
         Ok(GameSpec {
             label: value.label.to_owned(),
@@ -64,26 +64,25 @@ impl TryFrom<GameDef> for GameSpec {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::convert::TryInto;
-    use crate::defs::{GameDefBuilder, SuffixDef, KindDef, PosDef};
-    use crate::specs::suffix_spec::{SuffixSpec, SuffixRange, SuffixRow};
     use crate::coords::Suffix;
+    use crate::defs::{GameDefBuilder, KindDef, PosDef, SuffixDef};
+    use crate::specs::suffix_spec::{SuffixRange, SuffixRow, SuffixSpec};
+    use std::convert::TryInto;
 
     #[test]
     fn can_convert_def_into_spec() {
         let def = GameDefBuilder::new("whist")
             .min_players(3)
             .max_players(5)
-            .kind(KindDef::new("card")
-                .suffix_range(1, 52)
-            )
+            .kind(KindDef::new("card").suffix_range(1, 52))
             .kind(KindDef::new("leader"))
             .kind(KindDef::new("to_play"))
-            .kind(KindDef::new("suit")
-                .suffix(SuffixDef::new("hearts"))
-                .suffix(SuffixDef::new("clubs"))
-                .suffix(SuffixDef::new("diamonds"))
-                .suffix(SuffixDef::new("spades"))
+            .kind(
+                KindDef::new("suit")
+                    .suffix(SuffixDef::new("hearts"))
+                    .suffix(SuffixDef::new("clubs"))
+                    .suffix(SuffixDef::new("diamonds"))
+                    .suffix(SuffixDef::new("spades")),
             )
             .pos(PosDef::new("deck").hidden())
             .pos(PosDef::new("discard").hidden())
@@ -93,7 +92,6 @@ mod test {
             .build();
 
         let spec: GameSpec = def.try_into().unwrap();
-
 
         // let mut kind_specs = LookupTable::new();
         //

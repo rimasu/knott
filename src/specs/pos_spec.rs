@@ -1,9 +1,9 @@
-use std::convert::{TryFrom, TryInto};
-use crate::specs::suffix_spec::{convert_suffixes, SuffixSpec};
-use crate::lookup::{Labelled, HasId};
+use crate::coords::{InvalidPos, Pos};
 use crate::defs::PosDef;
 use crate::error::ItemError;
-use crate::coords::{Pos, InvalidPos};
+use crate::lookup::{HasId, Labelled};
+use crate::specs::suffix_spec::{convert_suffixes, SuffixSpec};
+use std::convert::{TryFrom, TryInto};
 
 #[derive(Debug, Clone)]
 pub struct PosSpec {

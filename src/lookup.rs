@@ -1,43 +1,46 @@
+use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::convert::TryFrom;
-use std::fmt::Debug;
 use std::fmt;
+use std::fmt::Debug;
 use std::hash::Hash;
-use std::collections::hash_map::Entry;
 
 pub trait HasId<I> {
     fn id(&self) -> I;
 }
 
-pub trait Indexed {
-    fn as_usize(&self) -> usize;
-}
-
-
 pub trait Labelled {
     fn label(&self) -> &str;
 }
 
-
-
 #[derive(Clone)]
-pub struct LookupTable<I, V>  where I: Hash + PartialEq + Clone, V: Clone{
+pub struct LookupTable<I, V>
+where
+    I: Hash + PartialEq + Clone,
+    V: Clone,
+{
     values: HashMap<I, V>,
     label_index: HashMap<String, I>,
 }
 
-impl<I, V> fmt::Debug for LookupTable<I, V> where I: Hash + PartialEq + Clone, V: Debug + Clone {
+impl<I, V> fmt::Debug for LookupTable<I, V>
+where
+    I: Hash + PartialEq + Clone,
+    V: Debug + Clone,
+{
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for (_, value) in &self.values {
+        for value in self.values.values() {
             write!(f, "\n{:?}", value)?;
         }
         Ok(())
     }
 }
 
-
-impl<I, V> LookupTable<I, V> where I: Hash + PartialEq + Eq + Debug + Clone, V: Labelled + HasId<I> + Clone {
-
+impl<I, V> LookupTable<I, V>
+where
+    I: Hash + PartialEq + Eq + Debug + Clone,
+    V: Labelled + HasId<I> + Clone,
+{
     pub fn new() -> LookupTable<I, V> {
         LookupTable {
             values: HashMap::new(),
@@ -58,7 +61,7 @@ impl<I, V> LookupTable<I, V> where I: Hash + PartialEq + Eq + Debug + Clone, V: 
                 e2.insert(item.id());
                 e.insert(item.clone());
                 Ok(())
-            } else  {
+            } else {
                 Err(Collision::LabelCollision(item.label().to_owned()))
             }
         } else {
@@ -77,8 +80,11 @@ impl<I, V> LookupTable<I, V> where I: Hash + PartialEq + Eq + Debug + Clone, V: 
     }
 }
 
-impl<I, V> TryFrom<Vec<V>> for LookupTable<I, V> where I: Hash + PartialEq + Eq + Copy + Debug,
-                                                        V: Labelled + HasId<I> + Clone + Debug {
+impl<I, V> TryFrom<Vec<V>> for LookupTable<I, V>
+where
+    I: Hash + PartialEq + Eq + Copy + Debug,
+    V: Labelled + HasId<I> + Clone + Debug,
+{
     type Error = Collision<I>;
 
     fn try_from(values: Vec<V>) -> Result<Self, Self::Error> {
@@ -90,13 +96,14 @@ impl<I, V> TryFrom<Vec<V>> for LookupTable<I, V> where I: Hash + PartialEq + Eq 
     }
 }
 
-
 #[derive(Debug, PartialEq)]
-pub enum Collision<I> where I: Debug + PartialEq {
+pub enum Collision<I>
+where
+    I: Debug + PartialEq,
+{
     IdCollision(I),
     LabelCollision(String),
 }
-
 
 #[cfg(test)]
 mod test {
@@ -123,9 +130,18 @@ mod test {
 
     #[test]
     fn can_convert_list_to_lookup() {
-        let a1 = Dummy { id: 1, label: "A".to_owned() };
-        let b4 = Dummy { id: 4, label: "B".to_owned() };
-        let c3 = Dummy { id: 3, label: "C".to_owned() };
+        let a1 = Dummy {
+            id: 1,
+            label: "A".to_owned(),
+        };
+        let b4 = Dummy {
+            id: 4,
+            label: "B".to_owned(),
+        };
+        let c3 = Dummy {
+            id: 3,
+            label: "C".to_owned(),
+        };
 
         let items = vec![a1.clone(), b4.clone(), c3.clone()];
 
@@ -146,9 +162,18 @@ mod test {
 
     #[test]
     fn can_not_convert_if_there_is_a_label_collision() {
-        let a1 = Dummy { id: 1, label: "A".to_owned() };
-        let b4 = Dummy { id: 4, label: "B".to_owned() };
-        let b3 = Dummy { id: 3, label: "B".to_owned() };
+        let a1 = Dummy {
+            id: 1,
+            label: "A".to_owned(),
+        };
+        let b4 = Dummy {
+            id: 4,
+            label: "B".to_owned(),
+        };
+        let b3 = Dummy {
+            id: 3,
+            label: "B".to_owned(),
+        };
 
         let items = vec![a1.clone(), b4.clone(), b3.clone()];
 
@@ -162,17 +187,23 @@ mod test {
 
     #[test]
     fn can_not_convert_if_there_is_a_index_collision() {
-        let a1 = Dummy { id: 1, label: "A".to_owned() };
-        let b4 = Dummy { id: 4, label: "B".to_owned() };
-        let c4 = Dummy { id: 4, label: "C".to_owned() };
+        let a1 = Dummy {
+            id: 1,
+            label: "A".to_owned(),
+        };
+        let b4 = Dummy {
+            id: 4,
+            label: "B".to_owned(),
+        };
+        let c4 = Dummy {
+            id: 4,
+            label: "C".to_owned(),
+        };
 
         let items = vec![a1.clone(), b4.clone(), c4.clone()];
 
         let result: Result<LookupTable<u32, Dummy>, Collision<u32>> = items.try_into();
 
-        assert_eq!(
-            Collision::IdCollision(4),
-            result.unwrap_err()
-        )
+        assert_eq!(Collision::IdCollision(4), result.unwrap_err())
     }
 }

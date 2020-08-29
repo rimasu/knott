@@ -1,10 +1,9 @@
-
+use crate::coords::{Kind, Pos, Suffix};
 use crate::lookup::Collision;
-use crate::coords::{Suffix, Pos, Kind};
 
 #[derive(Debug, PartialEq)]
 pub enum SuffixRowError {
-    Thing
+    Thing,
 }
 
 #[derive(Debug, PartialEq)]
@@ -13,7 +12,7 @@ pub enum ItemError {
     SuffixesAndRangeDefined,
     InvalidSuffixRange(i32, i32),
     InvalidSuffixRow(SuffixRowError),
-    InvalidSuffixTable(Collision<Suffix>)
+    InvalidSuffixTable(Collision<Suffix>),
 }
 
 #[derive(Debug, PartialEq)]
