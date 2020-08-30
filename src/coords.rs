@@ -44,6 +44,24 @@ impl Kind {
     }
 }
 
+#[derive(PartialEq, Copy, Clone)]
+pub struct QKind {
+    pub kind: Kind,
+    pub suffix: Suffix,
+}
+
+impl fmt::Debug for QKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:}{:}", self.kind, self.suffix)
+    }
+}
+
+impl fmt::Display for QKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}{}", self.kind, self.suffix)
+    }
+}
+
 #[derive(Hash, Eq, PartialEq, Copy, Clone)]
 pub struct Pos(NonZeroU16);
 
@@ -80,10 +98,35 @@ impl fmt::Display for Pos {
     }
 }
 
+#[derive(PartialEq, Copy, Clone)]
+pub struct QPos {
+    pub pos: Pos,
+    pub suffix: Suffix,
+}
+
+impl fmt::Debug for QPos {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:}{:}", self.pos, self.suffix)
+    }
+}
+
+impl fmt::Display for QPos {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}{}", self.pos, self.suffix)
+    }
+}
+
+
 #[derive(Hash, Eq, PartialEq, Copy, Clone)]
 pub struct Suffix(pub i32);
 
 impl fmt::Debug for Suffix {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:+}", self.0)
+    }
+}
+
+impl fmt::Display for Suffix {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:+}", self.0)
     }
