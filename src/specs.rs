@@ -7,7 +7,7 @@ use crate::error::{Error, ItemError, SuffixRowError};
 use crate::lookup::{LookupTable, HasId, Labelled};
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct KindSpec {
     pub label: String,
     pub id: Kind,
@@ -47,7 +47,7 @@ impl TryFrom<KindDef> for KindSpec {
 }
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct PosSpec {
     pub(crate) label: String,
     pub(crate) id: Pos,
@@ -95,7 +95,6 @@ impl TryFrom<PosDef> for PosSpec {
 
 
 
-#[derive(Clone)]
 pub struct SuffixRow {
     pub suffix: Suffix,
     pub label: String,
@@ -128,7 +127,6 @@ impl TryFrom<SuffixDef> for SuffixRow {
     }
 }
 
-#[derive(Clone)]
 pub struct SuffixRange {
     pub min: Suffix,
     pub max: Suffix,
@@ -146,7 +144,6 @@ impl fmt::Debug for SuffixRange {
     }
 }
 
-#[derive(Clone)]
 pub enum SuffixSpec {
     Empty,
     Range(SuffixRange),

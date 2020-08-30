@@ -13,11 +13,9 @@ pub trait Labelled {
     fn label(&self) -> &str;
 }
 
-#[derive(Clone)]
 pub struct LookupTable<I, V>
     where
-        I: Hash + PartialEq + Clone,
-        V: Clone,
+        I: Hash + PartialEq
 {
     values: HashMap<I, V>,
     label_index: HashMap<String, I>,
@@ -25,8 +23,8 @@ pub struct LookupTable<I, V>
 
 impl<I, V> fmt::Debug for LookupTable<I, V>
     where
-        I: Hash + PartialEq + Clone,
-        V: Debug + Clone,
+        I: Hash + PartialEq,
+        V: Debug,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for value in self.values.values() {
@@ -38,8 +36,8 @@ impl<I, V> fmt::Debug for LookupTable<I, V>
 
 impl<I, V> LookupTable<I, V>
     where
-        I: Hash + PartialEq + Eq + Debug + Clone,
-        V: Labelled + HasId<I> + Clone,
+        I: Hash + PartialEq + Eq + Debug,
+        V: Labelled + HasId<I>,
 {
     pub fn new() -> LookupTable<I, V> {
         LookupTable {
@@ -55,11 +53,11 @@ impl<I, V> LookupTable<I, V>
         }
     }
 
-    pub fn push(&mut self, item: &V) -> Result<(), Collision<I>> {
+    pub fn push(&mut self, item: V) -> Result<(), Collision<I>> {
         if let Entry::Vacant(e) = self.values.entry(item.id()) {
             if let Entry::Vacant(e2) = self.label_index.entry(item.label().to_owned()) {
                 e2.insert(item.id());
-                e.insert(item.clone());
+                e.insert(item);
                 Ok(())
             } else {
                 Err(Collision::LabelCollision(item.label().to_owned()))
@@ -86,15 +84,15 @@ impl<I, V> LookupTable<I, V>
 
 impl<I, V> TryFrom<Vec<V>> for LookupTable<I, V>
     where
-        I: Hash + PartialEq + Eq + Copy + Debug,
-        V: Labelled + HasId<I> + Clone + Debug,
+        I: Hash + PartialEq + Eq + Debug,
+        V: Labelled + HasId<I>,
 {
     type Error = Collision<I>;
 
     fn try_from(values: Vec<V>) -> Result<Self, Self::Error> {
         let mut table = LookupTable::with_capacity(values.len());
         for value in values {
-            table.push(&value)?;
+            table.push(value)?;
         }
         Ok(table)
     }
