@@ -44,6 +44,12 @@ pub struct SuffixRange {
     pub max: Suffix,
 }
 
+impl SuffixRange {
+    pub fn contains_suffix(&self, suffix: Suffix) -> bool {
+        self.min.0 <= suffix.0 && suffix.0 <= self.max.0
+    }
+}
+
 impl fmt::Debug for SuffixRange {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?} -> {:?}", self.min, self.max)
@@ -55,6 +61,27 @@ pub enum SuffixSpec {
     Empty,
     Range(SuffixRange),
     Table(LookupTable<Suffix, SuffixRow>),
+}
+
+impl SuffixSpec {
+
+    pub fn is_valid(&self, suffix: Suffix) -> bool {
+        match self {
+            SuffixSpec::Empty => suffix.0 == 0,
+            SuffixSpec::Range(range) => range.contains_suffix(suffix),
+            SuffixSpec::Table(table) => table.contains_id(&suffix)
+        }
+    }
+
+    pub fn find_by_label<T: AsRef<str>>(&self, label:T) -> Option<Suffix> {
+        match self {
+            SuffixSpec::Empty => None,
+            SuffixSpec::Range(_) => None,
+            SuffixSpec::Table(table) => {
+                table.find_by_label(label).map(|r| r.suffix)
+            }
+        }
+    }
 }
 
 impl fmt::Debug for SuffixSpec {

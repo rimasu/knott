@@ -66,7 +66,6 @@ mod test {
     use super::*;
     use crate::coords::Suffix;
     use crate::defs::{GameDefBuilder, KindDef, PosDef, SuffixDef};
-    use crate::specs::suffix_spec::{SuffixRange, SuffixRow, SuffixSpec};
     use std::convert::TryInto;
 
     #[test]
@@ -93,131 +92,29 @@ mod test {
 
         let spec: GameSpec = def.try_into().unwrap();
 
-        // let mut kind_specs = LookupTable::new();
-        //
-        // kind_specs.push(
-        //     KindSpec {
-        //         label: "card".to_string(),
-        //         id: 1.try_into().unwrap(),
-        //         suffixes: SuffixSpec::Range(SuffixRange {
-        //             min: Suffix(1),
-        //             max: Suffix(52)
-        //         })
-        //     }
-        // );
-        //
-        // kind_specs.push(
-        //     KindSpec {
-        //         label: "leader".to_string(),
-        //         id: 2.try_into().unwrap(),
-        //         suffixes: SuffixSpec::Empty,
-        //     }
-        // );
-        //
-        // kind_specs.push(
-        //     KindSpec {
-        //         label: "to_play".to_string(),
-        //         id: 3.try_into().unwrap(),
-        //         suffixes: SuffixSpec::Empty,
-        //     }
-        // );
-        //
-        // let mut suit_table = LookupTable::new();
-        // suit_table.push(SuffixRow {
-        //     suffix: Suffix(1),
-        //     label: "hearts".to_owned()
-        // });
-        //
-        // suit_table.push(SuffixRow {
-        //     suffix: Suffix(2),
-        //     label: "clubs".to_owned()
-        // });
-        //
-        // suit_table.push(SuffixRow {
-        //     suffix: Suffix(3),
-        //     label: "diamonds".to_owned()
-        // });
-        //
-        // suit_table.push(SuffixRow {
-        //     suffix: Suffix(4),
-        //     label: "spades".to_owned()
-        // });
-        //
-        // kind_specs.push(
-        //     KindSpec {
-        //         label: "suit".to_string(),
-        //         id: 4.try_into().unwrap(),
-        //         suffixes: SuffixSpec::Table(suit_table),
-        //     }
-        // );
-        //
-        // let mut pos_specs = LookupTable::new();
-        //
-        // pos_specs.push(
-        //     PosSpec {
-        //         label: "deck".to_string(),
-        //         id: 1.try_into().unwrap(),
-        //         suffixes: SuffixSpec::Empty,
-        //         separate: false,
-        //         ordered: false,
-        //         hidden: true,
-        //     }
-        // );
-        //
-        // pos_specs.push(
-        //     PosSpec {
-        //         label: "discard".to_string(),
-        //         id: 2.try_into().unwrap(),
-        //         suffixes: SuffixSpec::Empty,
-        //         separate: false,
-        //         ordered: false,
-        //         hidden: true,
-        //     }
-        // );
-        //
-        //
-        // pos_specs.push(
-        //     PosSpec {
-        //         label: "hand".to_string(),
-        //         id: 3.try_into().unwrap(),
-        //         suffixes: SuffixSpec::Empty,
-        //         separate: true,
-        //         ordered: false,
-        //         hidden: true,
-        //     }
-        // );
-        //
-        // pos_specs.push(
-        //     PosSpec {
-        //         label: "trick".to_string(),
-        //         id: 4.try_into().unwrap(),
-        //         suffixes: SuffixSpec::Empty,
-        //         separate: true,
-        //         ordered: false,
-        //         hidden: false,
-        //     }
-        // );
-        //
-        // pos_specs.push(
-        //     PosSpec {
-        //         label: "trump".to_string(),
-        //         id: 5.try_into().unwrap(),
-        //         suffixes: SuffixSpec::Empty,
-        //         separate: false,
-        //         ordered: false,
-        //         hidden: false,
-        //     }
-        // );
-        //
-        // assert_eq!(
-        //     GameSpec {
-        //         label: "whist".to_owned(),
-        //         min_players: 3,
-        //         max_players: 5,
-        //         kind_specs,
-        //         pos_specs,
-        //     },
-        //     spec
-        // )
+        let deck = spec.pos_specs.find_by_label("deck").unwrap();
+        assert_eq!(true, deck.hidden);
+        assert_eq!(false, deck.ordered);
+        assert_eq!(false, deck.separate);
+
+        let suit = spec.kind_specs.find_by_label("suit").unwrap();
+        assert_eq!(Some(Suffix(1)), suit.suffixes.find_by_label("hearts"));
+        assert_eq!(Some(Suffix(4)), suit.suffixes.find_by_label("spades"));
+        assert_eq!(None, suit.suffixes.find_by_label("ravenclaw"));
+        assert_eq!(true, suit.suffixes.is_valid(Suffix(1)));
+        assert_eq!(true, suit.suffixes.is_valid(Suffix(4)));
+        assert_eq!(false, suit.suffixes.is_valid(Suffix(5)));
+
+        let cards = spec.kind_specs.find_by_label("card").unwrap();
+        assert_eq!(None, cards.suffixes.find_by_label("ravenclaw"));
+        assert_eq!(false, cards.suffixes.is_valid(Suffix(0)));
+        assert_eq!(true, cards.suffixes.is_valid(Suffix(1)));
+        assert_eq!(true, cards.suffixes.is_valid(Suffix(52)));
+        assert_eq!(false, cards.suffixes.is_valid(Suffix(53)));
+
+        let leader = spec.kind_specs.find_by_label("leader").unwrap();
+        assert_eq!(false, leader.suffixes.is_valid(Suffix(-1)));
+        assert_eq!(true, leader.suffixes.is_valid(Suffix(0)));
+        assert_eq!(false, leader.suffixes.is_valid(Suffix(1)));
     }
 }

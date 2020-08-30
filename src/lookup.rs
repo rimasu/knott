@@ -15,18 +15,18 @@ pub trait Labelled {
 
 #[derive(Clone)]
 pub struct LookupTable<I, V>
-where
-    I: Hash + PartialEq + Clone,
-    V: Clone,
+    where
+        I: Hash + PartialEq + Clone,
+        V: Clone,
 {
     values: HashMap<I, V>,
     label_index: HashMap<String, I>,
 }
 
 impl<I, V> fmt::Debug for LookupTable<I, V>
-where
-    I: Hash + PartialEq + Clone,
-    V: Debug + Clone,
+    where
+        I: Hash + PartialEq + Clone,
+        V: Debug + Clone,
 {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for value in self.values.values() {
@@ -37,9 +37,9 @@ where
 }
 
 impl<I, V> LookupTable<I, V>
-where
-    I: Hash + PartialEq + Eq + Debug + Clone,
-    V: Labelled + HasId<I> + Clone,
+    where
+        I: Hash + PartialEq + Eq + Debug + Clone,
+        V: Labelled + HasId<I> + Clone,
 {
     pub fn new() -> LookupTable<I, V> {
         LookupTable {
@@ -69,6 +69,10 @@ where
         }
     }
 
+    pub fn contains_id(&self, index: &I) -> bool {
+        self.values.contains_key(index)
+    }
+
     pub fn find(&self, index: &I) -> Option<&V> {
         self.values.get(index)
     }
@@ -81,9 +85,9 @@ where
 }
 
 impl<I, V> TryFrom<Vec<V>> for LookupTable<I, V>
-where
-    I: Hash + PartialEq + Eq + Copy + Debug,
-    V: Labelled + HasId<I> + Clone + Debug,
+    where
+        I: Hash + PartialEq + Eq + Copy + Debug,
+        V: Labelled + HasId<I> + Clone + Debug,
 {
     type Error = Collision<I>;
 
@@ -98,8 +102,8 @@ where
 
 #[derive(Debug, PartialEq)]
 pub enum Collision<I>
-where
-    I: Debug + PartialEq,
+    where
+        I: Debug + PartialEq,
 {
     IdCollision(I),
     LabelCollision(String),
