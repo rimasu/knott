@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use std::convert::TryInto;
 
 fn default_suffix_range() -> Option<SuffixRangeDef> {
     None
@@ -71,7 +72,7 @@ pub struct KindDefBuilder {
 }
 
 impl KindDef {
-    pub fn new<T: AsRef<str>>(label: T) -> KindDefBuilder {
+    pub fn bld<T: AsRef<str>>(label: T) -> KindDefBuilder {
         KindDefBuilder {
             label: label.as_ref().to_owned(),
             id: None,
@@ -82,6 +83,11 @@ impl KindDef {
 }
 
 impl KindDefBuilder {
+    pub fn id(mut self, id: u32) -> Self {
+        self.id = id.try_into().unwrap();
+        self
+    }
+
     pub fn suffix_range(mut self, min: i32, max: i32) -> Self {
         self.suffix_range = Some(SuffixRangeDef { min, max });
         self
@@ -138,7 +144,7 @@ pub struct PosDefBuilder {
 }
 
 impl PosDef {
-    pub fn new<T: AsRef<str>>(label: T) -> PosDefBuilder {
+    pub fn bld<T: AsRef<str>>(label: T) -> PosDefBuilder {
         PosDefBuilder {
             label: label.as_ref().to_owned(),
             id: None,
@@ -152,6 +158,12 @@ impl PosDef {
 }
 
 impl PosDefBuilder {
+
+    pub fn id(mut self, id: u32) -> Self {
+        self.id = id.try_into().unwrap();
+        self
+    }
+
     pub fn suffix_range(mut self, min: i32, max: i32) -> Self {
         self.suffix_range = Some(SuffixRangeDef { min, max });
         self
@@ -209,7 +221,7 @@ pub struct GameDefBuilder {
 }
 
 impl GameDefBuilder {
-    pub fn new<A: AsRef<str>>(label: A) -> GameDefBuilder {
+    pub fn bld<A: AsRef<str>>(label: A) -> GameDefBuilder {
         GameDefBuilder {
             label: label.as_ref().to_owned(),
             min_players: 2,
@@ -258,24 +270,24 @@ mod test {
 
     #[test]
     fn can_build_game_def() {
-        let def = GameDefBuilder::new("whist")
+        let def = GameDefBuilder::bld("whist")
             .min_players(3)
             .max_players(5)
-            .kind(KindDef::new("card").suffix_range(1, 52))
-            .kind(KindDef::new("leader"))
-            .kind(KindDef::new("to_play"))
+            .kind(KindDef::bld("card").suffix_range(1, 52))
+            .kind(KindDef::bld("leader"))
+            .kind(KindDef::bld("to_play"))
             .kind(
-                KindDef::new("suit")
+                KindDef::bld("suit")
                     .suffix(SuffixDef::new("hearts"))
                     .suffix(SuffixDef::new("clubs"))
                     .suffix(SuffixDef::new("diamonds"))
                     .suffix(SuffixDef::new("spades")),
             )
-            .pos(PosDef::new("deck").hidden())
-            .pos(PosDef::new("discard").hidden())
-            .pos(PosDef::new("hand").hidden().separate())
-            .pos(PosDef::new("trick").separate())
-            .pos(PosDef::new("trump"))
+            .pos(PosDef::bld("deck").hidden())
+            .pos(PosDef::bld("discard").hidden())
+            .pos(PosDef::bld("hand").hidden().separate())
+            .pos(PosDef::bld("trick").separate())
+            .pos(PosDef::bld("trump"))
             .build();
 
         let s = serde_yaml::to_string(&def).unwrap();
