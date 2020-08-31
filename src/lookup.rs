@@ -1,4 +1,4 @@
-use std::collections::hash_map::Entry;
+use std::collections::hash_map::{Entry, Values};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use std::fmt;
@@ -21,6 +21,7 @@ pub struct LookupTable<I, V>
     label_index: HashMap<String, I>,
 }
 
+
 impl<I, V> fmt::Debug for LookupTable<I, V>
     where
         I: Hash + PartialEq,
@@ -31,6 +32,16 @@ impl<I, V> fmt::Debug for LookupTable<I, V>
             write!(f, "\n{:?}", value)?;
         }
         Ok(())
+    }
+}
+
+impl<'a, I, V> IntoIterator for &'a LookupTable<I, V> where
+    I: Hash + PartialEq + Eq {
+    type Item = &'a V;
+    type IntoIter = Values<'a, I, V>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.values.values()
     }
 }
 

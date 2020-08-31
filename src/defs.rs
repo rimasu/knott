@@ -31,7 +31,7 @@ pub struct SuffixDefBuilder {
 }
 
 impl SuffixDef {
-    pub fn new<T: AsRef<str>>(label: T) -> SuffixDefBuilder {
+    pub fn bld<T: AsRef<str>>(label: T) -> SuffixDefBuilder {
         SuffixDefBuilder {
             label: label.as_ref().to_owned(),
             id: None,
@@ -278,10 +278,10 @@ mod test {
             .kind(KindDef::bld("to_play"))
             .kind(
                 KindDef::bld("suit")
-                    .suffix(SuffixDef::new("hearts"))
-                    .suffix(SuffixDef::new("clubs"))
-                    .suffix(SuffixDef::new("diamonds"))
-                    .suffix(SuffixDef::new("spades")),
+                    .suffix(SuffixDef::bld("hearts"))
+                    .suffix(SuffixDef::bld("clubs"))
+                    .suffix(SuffixDef::bld("diamonds"))
+                    .suffix(SuffixDef::bld("spades")),
             )
             .pos(PosDef::bld("deck").hidden())
             .pos(PosDef::bld("discard").hidden())

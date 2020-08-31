@@ -228,9 +228,11 @@ pub struct GameSpec {
     label: String,
     min_players: u8,
     max_players: u8,
-    kind_specs: LookupTable<Kind, KindSpec>,
-    pos_specs: LookupTable<Pos, PosSpec>,
+    pub(crate) kind_specs: LookupTable<Kind, KindSpec>,
+    pub(crate) pos_specs: LookupTable<Pos, PosSpec>,
 }
+
+
 
 fn convert_player_num(input: u32) -> Result<u8, Error> {
     input
@@ -289,10 +291,10 @@ mod test {
             .kind(KindDef::bld("to_play"))
             .kind(
                 KindDef::bld("suit")
-                    .suffix(SuffixDef::new("hearts"))
-                    .suffix(SuffixDef::new("clubs"))
-                    .suffix(SuffixDef::new("diamonds"))
-                    .suffix(SuffixDef::new("spades")),
+                    .suffix(SuffixDef::bld("hearts"))
+                    .suffix(SuffixDef::bld("clubs"))
+                    .suffix(SuffixDef::bld("diamonds"))
+                    .suffix(SuffixDef::bld("spades")),
             )
             .pos(PosDef::bld("deck").hidden())
             .pos(PosDef::bld("discard").hidden())
@@ -366,8 +368,8 @@ mod test {
             .min_players(3)
             .max_players(5)
             .kind(KindDef::bld("beans")
-                .suffix(SuffixDef::new("coke"))
-                .suffix(SuffixDef::new("coke"))
+                .suffix(SuffixDef::bld("coke"))
+                .suffix(SuffixDef::bld("coke"))
             )
             .build();
 
@@ -416,8 +418,8 @@ mod test {
             .min_players(3)
             .max_players(5)
             .pos(PosDef::bld("beans")
-                .suffix(SuffixDef::new("coke"))
-                .suffix(SuffixDef::new("coke"))
+                .suffix(SuffixDef::bld("coke"))
+                .suffix(SuffixDef::bld("coke"))
             )
             .build();
 

@@ -2,7 +2,7 @@ use std::convert::TryFrom;
 use std::fmt;
 use std::num::NonZeroU16;
 
-#[derive(Hash, Eq, PartialEq, Copy, Clone)]
+#[derive(Hash, Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
 pub struct Kind(NonZeroU16);
 
 static MIN_KIND: u32 = 1;
@@ -44,7 +44,7 @@ impl Kind {
     }
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(Hash, Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
 pub struct QKind {
     pub kind: Kind,
     pub suffix: Suffix,
@@ -62,7 +62,7 @@ impl fmt::Display for QKind {
     }
 }
 
-#[derive(Hash, Eq, PartialEq, Copy, Clone)]
+#[derive(Hash, Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
 pub struct Pos(NonZeroU16);
 
 static MIN_POS: u32 = 1;
@@ -98,26 +98,7 @@ impl fmt::Display for Pos {
     }
 }
 
-#[derive(PartialEq, Copy, Clone)]
-pub struct QPos {
-    pub pos: Pos,
-    pub suffix: Suffix,
-}
-
-impl fmt::Debug for QPos {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:}{:}", self.pos, self.suffix)
-    }
-}
-
-impl fmt::Display for QPos {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}{}", self.pos, self.suffix)
-    }
-}
-
-
-#[derive(Hash, Eq, PartialEq, Copy, Clone)]
+#[derive(Hash, Eq, Ord, PartialOrd, PartialEq, Copy, Clone)]
 pub struct Suffix(pub i32);
 
 impl fmt::Debug for Suffix {
@@ -129,6 +110,40 @@ impl fmt::Debug for Suffix {
 impl fmt::Display for Suffix {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:+}", self.0)
+    }
+}
+
+#[derive(Hash, Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
+pub struct Region(pub u16);
+
+impl fmt::Debug for Region {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:+}", self.0)
+    }
+}
+
+impl fmt::Display for Region {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:+}", self.0)
+    }
+}
+
+#[derive(Eq, PartialEq, Ord, PartialOrd, Copy, Clone)]
+pub struct QPos {
+    pub pos: Pos,
+    pub region: Region,
+    pub suffix: Suffix,
+}
+
+impl fmt::Debug for QPos {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:}{:}{:}", self.pos, self.region, self.suffix)
+    }
+}
+
+impl fmt::Display for QPos {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}{}{}", self.pos, self.region, self.suffix)
     }
 }
 
